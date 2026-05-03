@@ -20,7 +20,6 @@ fn elevate_to_strong_qap(
     num_vars: usize,
 ) -> (Vec<DensePolynomial<Fr>>, Vec<DensePolynomial<Fr>>, Vec<DensePolynomial<Fr>>, DensePolynomial<Fr>) {
     // Strong QAP：目标多项式的最高次幂 从d提升到3d + 2N。
-    // 这是为了在多项式中强行塞入额外的验证约束，防止恶意的 Prover 混用系数。
     let k = 3 * num_gates + 2 * num_vars; 
 
     // 构造位移多项式 S(x) = x^k
@@ -54,7 +53,7 @@ pub fn run_benchmark(
     let mut rng = ark_std::test_rng();
 
     // ---------------------------------------------------------------------
-    // Pre-computation] 转换为 Strong QAP
+    // Pre-computation 转换为 Strong QAP
     // ---------------------------------------------------------------------
     let (str_v, str_w, str_y, str_t) = elevate_to_strong_qap(v_polys, w_polys, y_polys, t_poly, num_gates, num_vars);
 
