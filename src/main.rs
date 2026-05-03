@@ -13,6 +13,7 @@ use std::fs;
 struct CircuitConfig {
     num_gates: usize,
     num_vars: usize,
+    num_io: usize,
     r1cs: R1CSMatrices,
     witness: Vec<u32>,
 }
@@ -31,7 +32,10 @@ fn main() {
     // 读取并解析 JSON
     let config_data = fs::read_to_string("circuit.json").expect("无法读取 circuit.json");
     let config: CircuitConfig = serde_json::from_str(&config_data).expect("JSON 解析失败");
-    println!("成功加载电路配置：{} 变量, {} 门", config.num_vars, config.num_gates);
+    println!(
+        "成功加载电路配置：{} 变量, {} 门, {} 公开输入",
+        config.num_vars, config.num_gates, config.num_io
+    );
 
     // 构造列矩阵并进行拉格朗日插值
     let domain = GeneralEvaluationDomain::<Fr>::new(config.num_gates).unwrap();
@@ -39,11 +43,20 @@ fn main() {
     let mut b_cols = vec![vec![Fr::zero(); config.num_gates]; config.num_vars];
     let mut c_cols = vec![vec![Fr::zero(); config.num_gates]; config.num_vars];
 
-    for (g, row) in config.r1cs.A.iter().enumerate() { for (v, &val) in row.iter().enumerate() { a_cols[v][g] = Fr::from(val); } }
-    for (g, row) in config.r1cs.B.iter().enumerate() { for (v, &val) in row.iter().enumerate() { b_cols[v][g] = Fr::from(val); } }
-    for (g, row) in config.r1cs.C.iter().enumerate() { for (v, &val) in row.iter().enumerate() { c_cols[v][g] = Fr::from(val); } }
+    for (g, row) in config.r1cs.A.iter().enumerate() { 
+        for (v, &val) in row.iter().enumerate() { a_cols[v][g] = Fr::from(val); } 
+    }
+    for (g, row) in config.r1cs.B.iter().enumerate() { 
+        for (v, &val) in row.iter().enumerate() { b_cols[v][g] = Fr::from(val); } 
+    }
+    for (g, row) in config.r1cs.C.iter().enumerate() { 
+        for (v, &val) in row.iter().enumerate() { c_cols[v][g] = Fr::from(val); } 
+    }
 
-    let mut reg_v = Vec::new(); let mut reg_w = Vec::new(); let mut reg_y = Vec::new();
+    let mut reg_v = Vec::new(); 
+    let mut reg_w = Vec::new(); 
+    let mut reg_y = Vec::new();
+    
     for k in 0..config.num_vars {
         reg_v.push(Evaluations::from_vec_and_domain(a_cols[k].clone(), domain).interpolate());
         reg_w.push(Evaluations::from_vec_and_domain(b_cols[k].clone(), domain).interpolate());
@@ -56,10 +69,16 @@ fn main() {
 
     // 运行基准测试
     println!("\n正在运行 Pinocchio (Regular QAP) ...");
-    let (p_setup, p_prove, p_verify, p_valid) = pinocchio::run_benchmark(&reg_v, &reg_w, &reg_y, &reg_t, &witness);
+    let (p_setup, p_prove, p_verify, p_valid) = pinocchio::run_benchmark(
+        &reg_v, &reg_w, &reg_y, &reg_t, &witness, config.num_io
+    );
 
     println!("正在运行 GGPR13 (Strong QAP) ...");
-    let (g_setup, g_prove, g_verify, g_valid) = ggpr13::run_benchmark(&reg_v, &reg_w, &reg_y, &reg_t, &witness, config.num_gates, config.num_vars);
+    // GGPR13 需要知道 num_gates 和 num_vars 来做复杂的 CRT 强 QAP 转换
+    let (g_setup, g_prove, g_verify, g_valid) = ggpr13::run_benchmark(
+        &reg_v, &reg_w, &reg_y, &reg_t, &witness, config.num_gates, config.num_vars, config.num_io
+    );
+
     println!("\n=======================================================");
     println!("Pinocchio vs GGPR13");
     println!("=======================================================");
