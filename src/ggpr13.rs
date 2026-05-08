@@ -64,7 +64,7 @@ fn crt_interpolate(
 }
 
 // =====================================================================
-// GGPR13 强 QAP (Strong QAP) 严格代数转换 (Section 7.1)
+// GGPR13 强 QAP (Strong QAP) 严格代数转换
 // =====================================================================
 fn elevate_to_strong_qap(
     v_polys: &[DensePolynomial<Fr>],
@@ -133,11 +133,13 @@ pub fn run_benchmark(
     _num_gates: usize,
     num_vars: usize,
     num_io: usize,
-) -> (Duration, Duration, Duration, bool) {
+) -> (Duration, Duration, Duration, bool, Duration) {
     let mut rng = ark_std::test_rng();
 
     // 0. Preprocessing: 严格的 GGPR13 Strong QAP 转换
+    let setup_start = Instant::now();
     let (str_v, str_w, str_y, str_t) = elevate_to_strong_qap(v_polys, w_polys, y_polys, t_poly, num_vars);
+    let preprocessiong_duration = setup_start.elapsed();
 
     // ---------------------------------------------------------------------
     // 1. Setup Phase
@@ -245,5 +247,5 @@ pub fn run_benchmark(
 
     let verify_duration = verify_start.elapsed();
 
-    (setup_duration, prove_duration, verify_duration, is_valid)
+    (setup_duration, prove_duration, verify_duration, is_valid, preprocessiong_duration)
 }

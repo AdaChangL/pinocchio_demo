@@ -5,17 +5,14 @@ use std::io::Write;
 fn main() {
     println!("=== 巨型 R1CS 电路生成器 ===");
 
-    // 【可调节电路规模】：建议使用 1024 门来获取顺畅的测试体验和明显的数据对比
+    // 电路规模
     let num_gates = 64; 
-    
     // 变量总数：[常数1, 输入x, v1, v2, ..., v_n]
     let num_vars = num_gates + 2; 
-    
-    // 【新增】：公开输入的数量 (Statement)
+    // 公开输入的数量 (Statement)
     // 索引 0: 常数 1
     // 索引 1: 输入变量 x
     let num_io = 2; 
-
     println!("正在生成包含 {} 个门, {} 个变量, {} 个公开输入的电路...", num_gates, num_vars, num_io);
 
     let mut a_matrix = vec![vec![0u32; num_vars]; num_gates];
@@ -34,7 +31,7 @@ fn main() {
         c_matrix[i][output_idx] = 1;
     }
 
-    // 生成对应的 Witness：只要输入 x=3，后面全推导为 3
+    // 生成对应的 Witness
     let mut witness = vec![1u32, 3u32];
     for _ in 0..num_gates {
         witness.push(3u32);

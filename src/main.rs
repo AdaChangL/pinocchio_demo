@@ -74,8 +74,7 @@ fn main() {
     );
 
     println!("正在运行 GGPR13 (Strong QAP) ...");
-    // GGPR13 需要知道 num_gates 和 num_vars 来做复杂的 CRT 强 QAP 转换
-    let (g_setup, g_prove, g_verify, g_valid) = ggpr13::run_benchmark(
+    let (g_setup, g_prove, g_verify, g_valid,g_pre) = ggpr13::run_benchmark(
         &reg_v, &reg_w, &reg_y, &reg_t, &witness, config.num_gates, config.num_vars, config.num_io
     );
 
@@ -89,4 +88,5 @@ fn main() {
     println!("证明验证 (Verify)   | {:<19?} | {:<15?}", p_verify, g_verify);
     println!("验证结果            | {:<19} | {:<15}", if p_valid {"通过"} else {"失败"}, if g_valid {"通过"} else {"失败"});
     println!("=======================================================\n");
+    println!("Strong QAP 转换预处理时间{:<15?}",g_pre);
 }
