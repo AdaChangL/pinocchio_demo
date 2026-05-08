@@ -4,18 +4,7 @@
 
 ---
 
-## 📚 背景
-
-本项目实现了两篇经典论文的核心协议：
-
-| 协议 | 论文 | QAP 类型 | 特点 |
-|------|------|----------|------|
-
-| **GGPR13** | [Quadratic Span Programs and Succinct NIZKs without PCPs] | Strong QAP | 通过 CRT 插值构造Strong QAP |
-| **Pinocchio** | [Pinocchio: Nearly Practical Verifiable Computation] | Regular QAP | 使用 `r_v, r_w, r_y` 缩放参数实现一致性校验（Span Check） |
----
-
-## 📂 项目结构
+## 项目结构
 
 ```
 pinocchio_demo/
